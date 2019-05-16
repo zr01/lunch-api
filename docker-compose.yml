@@ -1,8 +1,11 @@
-version: 3
+version: '3'
 services:
   lunch:
     build:
-      dockerfile: Dockerfile
-    container_name: lunch-api
+      context: '.'
+      dockerfile: 'Dockerfile'
+    container_name: 'lunch-api'
+    hostname: 'lunch-api'
+    image: 'com.aquinoa/lunch'
     ports:
-      - 80:8080
+      - '80:8080'
