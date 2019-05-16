@@ -1,0 +1,13 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/v2/5cdd037d300000da25e23402"
+  },
+  "response": {
+    "status": 200,
+    "body": "{\"ingredients\":[{\"title\":\"Ham\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Cheese\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Bread\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Butter\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Bacon\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Eggs\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Mushrooms\",\"best-before\":\"2019-05-11\",\"use-by\":\"2019-05-14\"},{\"title\":\"Sausage\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Hotdog Bun\",\"best-before\":\"2019-05-11\",\"use-by\":\"2019-05-26\"},{\"title\":\"Ketchup\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Mustard\",\"best-before\":\"2019-05-26\",\"use-by\":\"2019-05-31\"},{\"title\":\"Lettuce\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Tomato\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Cucumber\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Beetroot\",\"best-before\":\"2019-05-21\",\"use-by\":\"2019-05-26\"},{\"title\":\"Salad Dressing\",\"best-before\":\"2019-05-11\",\"use-by\":\"2019-05-14\"}]}",
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
