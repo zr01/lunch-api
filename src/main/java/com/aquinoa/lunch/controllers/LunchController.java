@@ -2,6 +2,7 @@ package com.aquinoa.lunch.controllers;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,29 +22,19 @@ public class LunchController {
 
   @Autowired
   LunchService lunchService;
-  
+
   @GetMapping("/lunch")
-  public Recipes getLunch(@RequestParam(name = "use-by", required = false, defaultValue = "false") Boolean isUseBy,
-      @RequestParam(name = "best-before", required = false, defaultValue = "false") Boolean isBestBefore,
-      @RequestParam(name = "date", required = false) String date) {
+  public Recipes getLunch(@RequestParam(name = "date", required = false) String date) {
     try {
-      if (!isUseBy && !isBestBefore) {
-        return lunchService.getRecipesWithAllIngredients();
-      } else if (isUseBy && !isBestBefore && date != null) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return lunchService.getRecipesWithinUsedBy(sdf.parse(date));
-      } else if (isUseBy && isBestBefore && date != null) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        return lunchService.getRecipesWithinBestAndUsedBy(sdf.parse(date));
-      }
-      
-      throw new Exception("Invalid query, please provide a date.");
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      Date queryDate = date != null ? sdf.parse(date) : sdf.parse(sdf.format(new Date()));
+      return lunchService.getRecipesWithinBestAndUsedBy(queryDate);
+
     } catch (ServiceException e) {
       throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
     } catch (ParseException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid date, please use yyyy-MM-dd for your date as its format");
-    } catch (Exception e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          "Invalid date, please use yyyy-MM-dd for your date as its format");
     }
   }
 }

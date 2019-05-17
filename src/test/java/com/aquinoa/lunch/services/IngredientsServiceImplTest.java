@@ -2,6 +2,7 @@ package com.aquinoa.lunch.services;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import com.aquinoa.lunch.daos.Ingredients;
@@ -26,19 +28,17 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 public class IngredientsServiceImplTest extends AbstractJUnit4SpringContextTests {
 
   static final Logger l = LoggerFactory.getLogger(IngredientsServiceImplTest.class);
-  
+
   @TestConfiguration
   static class TestConfig {
     @Bean
-    IngredientService ingredientService () {
+    IngredientService ingredientService() {
       return new IngredientServiceImpl();
     }
-    
+
     @Bean
     RestTemplate restTemplate() {
-      return new RestTemplateBuilder()
-          .rootUri("http://localhost:9000")
-          .build();
+      return new RestTemplateBuilder().rootUri("http://localhost:9000").build();
     }
   }
 
@@ -48,11 +48,16 @@ public class IngredientsServiceImplTest extends AbstractJUnit4SpringContextTests
   @Autowired
   IngredientService ingredientService;
   
+  @Before
+  public void setup() {
+    ReflectionTestUtils.setField(ingredientService, "lunchServiceBaseUrl", "http://localhost:9000");
+  }
+
   @Test
   public void testServiceIsNotNull() {
     assertNotNull(ingredientService);
   }
-  
+
   @Test
   public void testGetIngredientsSuccess() {
     Ingredients ingredients = ingredientService.getIngredients("5cdd037d300000da25e23402");
@@ -60,7 +65,7 @@ public class IngredientsServiceImplTest extends AbstractJUnit4SpringContextTests
     assertNotNull(ingredients.getIngredients());
     assertTrue(ingredients.getIngredients().size() > 0);
   }
-  
+
   @Test(expected = NullPointerException.class)
   public void testGetIngredientsIdIsNull() {
     ingredientService.getIngredients(null);

@@ -43,8 +43,14 @@ public class LunchServiceImpl implements LunchService {
       Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
       List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+          /**
+           * Filter the recipe based on which ALL of its ingredients exist
+           */
           .filter(recipe -> recipe.getIngredients().stream()
               .allMatch(i -> ingredients.getIngredients().stream()
+                  /**
+                   * Matches the ingredient from the recipe to the ingredient list
+                   */
                   .anyMatch(ingredient -> ingredient.getTitle().equals(i))))
           .collect(Collectors.toList());
       return Recipes.builder().recipes(filteredRecipes).build();
@@ -68,8 +74,15 @@ public class LunchServiceImpl implements LunchService {
       Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
       List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+          /**
+           * Filter the recipe based on which ALL of its ingredients exist
+           */
           .filter(recipe -> recipe.getIngredients().stream()
               .allMatch(i -> ingredients.getIngredients().stream()
+                  /**
+                   * Matches the ingredient from the recipe to the ingredient list and filters any
+                   * ingredient past the use-by date
+                   */
                   .anyMatch(ingredient -> ingredient.getTitle().equals(i)
                       && ingredient.getUseBy().getTime() > useBy.getTime())))
           .collect(Collectors.toList());
@@ -95,28 +108,29 @@ public class LunchServiceImpl implements LunchService {
       Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
       List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+          /**
+           * Filter the recipe based on which ALL of its ingredients exist and are not yet past
+           * their use-by date
+           */
           .filter(recipe -> recipe.getIngredients().stream()
               .allMatch(i -> ingredients.getIngredients().stream()
                   .anyMatch(ingredient -> ingredient.getTitle().equals(i)
                       && ingredient.getUseBy().getTime() > date.getTime())))
-          .collect(Collectors.toList());
-      
-      /**
-       * We've filtered out anything that is < useBy<br/>
-       * We sort the list on which of the items are still before their best by date
-       */
-      filteredRecipes.sort((rLeft, rRight) -> {
-        if (ingredients.getIngredients().stream()
-            .filter(i -> rLeft.getIngredients().contains(i.getTitle()))
-            .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
-          return -1;
-        else if (ingredients.getIngredients().stream()
-            .filter(i -> rRight.getIngredients().contains(i.getTitle()))
-            .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
-          return 1;
-        return 0;
-      });
-      
+          /**
+           * Sort the recipe list based on whose ingredients may expire first
+           */
+          .sorted((rLeft, rRight) -> {
+            if (ingredients.getIngredients().stream()
+                .filter(i -> rLeft.getIngredients().contains(i.getTitle()))
+                .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
+              return -1;
+            else if (ingredients.getIngredients().stream()
+                .filter(i -> rRight.getIngredients().contains(i.getTitle()))
+                .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
+              return 1;
+            return 0;
+          }).collect(Collectors.toList());
+
       return Recipes.builder().recipes(filteredRecipes).build();
     } catch (RestClientException e) {
       l.error("REST call error: ", e);

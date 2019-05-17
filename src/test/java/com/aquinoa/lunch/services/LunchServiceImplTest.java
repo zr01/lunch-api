@@ -78,79 +78,52 @@ public class LunchServiceImplTest extends AbstractJUnit4SpringContextTests {
 
     when(ingredientService.getIngredients(eq("rest-error")))
         .thenThrow(new RestClientException("mocked-rest-error"));
-    
-    when(recipeService.getRecipes(eq("test-use-by-valid")))
-      .thenReturn(Recipes.builder()
-          .recipes(Arrays.asList(
-              Recipe.builder()
-              .title("Test Recipe with ingredient by use by")
-              .ingredients(Arrays.asList("valid-use-by", "valid-use-by-2"))
-              .build(),
-              Recipe.builder()
-              .title("Test Recipe with an invalid ingredient by use by")
-              .ingredients(Arrays.asList("invalid-use-by", "valid-use-by-2"))
-              .build()))
-          .build());
-    
-    long currentTime = System.currentTimeMillis();
-    when(ingredientService.getIngredients("test-use-by-valid"))
-      .thenReturn(Ingredients.builder()
-          .ingredients(Arrays.asList(Ingredient.builder()
-              .title("valid-use-by")
-              .useBy(new Date(currentTime + (1000 * 60 * 60)))
-              .bestBefore(new Date(currentTime))
-              .build(),
-              Ingredient.builder()
-              .title("valid-use-by-2")
-              .useBy(new Date(currentTime + (1000 * 60 * 60)))
-              .bestBefore(new Date(currentTime))
-              .build(),
-              Ingredient.builder()
-              .title("invalid-use-by")
-              .useBy(new Date(currentTime - (1000 * 60 * 60)))
-              .bestBefore(new Date(currentTime - (1000 * 60 * 60 * 2)))
-              .build()))
-          .build());
-    
-    when(recipeService.getRecipes(eq("test-good-date-and-sort")))
-    .thenReturn(Recipes.builder()
+
+    when(recipeService.getRecipes(eq("test-use-by-valid"))).thenReturn(Recipes.builder()
         .recipes(Arrays.asList(
-            Recipe.builder()
-            .title("Bottom Recipe")
-            .ingredients(Arrays.asList("low-quality"))
-            .build(),
-            Recipe.builder()
-            .title("Top Recipe")
-            .ingredients(Arrays.asList("high-quality"))
-            .build(),
-            Recipe.builder()
-            .title("Not in list")
-            .ingredients(Arrays.asList("no-quality"))
-            .build(),
-            Recipe.builder()
-            .title("Bottom Recipe 2")
-            .ingredients(Arrays.asList("low-quality"))
-            .build()))
+            Recipe.builder().title("Test Recipe with ingredient by use by")
+                .ingredients(Arrays.asList("valid-use-by", "valid-use-by-2")).build(),
+            Recipe.builder().title("Test Recipe with an invalid ingredient by use by")
+                .ingredients(Arrays.asList("invalid-use-by", "valid-use-by-2")).build()))
         .build());
-    
+
+    long currentTime = System.currentTimeMillis();
+    when(ingredientService.getIngredients("test-use-by-valid")).thenReturn(Ingredients.builder()
+        .ingredients(Arrays.asList(
+            Ingredient.builder().title("valid-use-by")
+                .useBy(new Date(currentTime + (1000 * 60 * 60))).bestBefore(new Date(currentTime))
+                .build(),
+            Ingredient.builder().title("valid-use-by-2")
+                .useBy(new Date(currentTime + (1000 * 60 * 60))).bestBefore(new Date(currentTime))
+                .build(),
+            Ingredient.builder().title("invalid-use-by")
+                .useBy(new Date(currentTime - (1000 * 60 * 60)))
+                .bestBefore(new Date(currentTime - (1000 * 60 * 60 * 2))).build()))
+        .build());
+
+    when(recipeService.getRecipes(eq("test-good-date-and-sort"))).thenReturn(Recipes.builder()
+        .recipes(Arrays.asList(
+            Recipe.builder().title("Bottom Recipe").ingredients(Arrays.asList("low-quality"))
+                .build(),
+            Recipe.builder().title("Top Recipe").ingredients(Arrays.asList("high-quality")).build(),
+            Recipe.builder().title("Not in list").ingredients(Arrays.asList("no-quality")).build(),
+            Recipe.builder().title("Bottom Recipe 2").ingredients(Arrays.asList("low-quality"))
+                .build()))
+        .build());
+
     when(ingredientService.getIngredients("test-good-date-and-sort"))
-    .thenReturn(Ingredients.builder()
-        .ingredients(Arrays.asList(Ingredient.builder()
-            .title("low-quality")
-            .useBy(new Date(currentTime + (1000 * 60 * 60)))
-            .bestBefore(new Date(currentTime - (1000 * 60 * 60 * 2)))
-            .build(),
-            Ingredient.builder()
-            .title("high-quality")
-            .useBy(new Date(currentTime + (1000 * 60 * 60 * 2)))
-            .bestBefore(new Date(currentTime + (1000 * 60 * 60)))
-            .build(),
-            Ingredient.builder()
-            .title("no-quality")
-            .useBy(new Date(currentTime - (1000 * 60 * 60 * 2)))
-            .bestBefore(new Date(currentTime - (1000 * 60 * 60)))
-            .build()))
-        .build());
+        .thenReturn(Ingredients.builder()
+            .ingredients(Arrays.asList(
+                Ingredient.builder().title("low-quality")
+                    .useBy(new Date(currentTime + (1000 * 60 * 60)))
+                    .bestBefore(new Date(currentTime - (1000 * 60 * 60 * 2))).build(),
+                Ingredient.builder().title("high-quality")
+                    .useBy(new Date(currentTime + (1000 * 60 * 60 * 2)))
+                    .bestBefore(new Date(currentTime + (1000 * 60 * 60))).build(),
+                Ingredient.builder().title("no-quality")
+                    .useBy(new Date(currentTime - (1000 * 60 * 60 * 2)))
+                    .bestBefore(new Date(currentTime - (1000 * 60 * 60))).build()))
+            .build());
 
     /**
      * Currently missing the null ID test -- something is wrong with mockito not checking isNull
@@ -192,20 +165,20 @@ public class LunchServiceImplTest extends AbstractJUnit4SpringContextTests {
     assertNotNull(recipes.getRecipes());
     assertEquals(1, recipes.getRecipes().size());
   }
-  
+
   @Test(expected = ServiceException.class)
   public void testGetRecipestWithinUseByInvalidRecipes() throws ServiceException {
     ReflectionTestUtils.setField(lunchService, "RECIPES_ID", "rest-error");
     lunchService.getRecipesWithinUsedBy(new Date());
   }
-  
+
   @Test(expected = ServiceException.class)
   public void testGetRecipestWithinUseByInvalidIngredients() throws ServiceException {
     ReflectionTestUtils.setField(lunchService, "RECIPES_ID", "valid");
     ReflectionTestUtils.setField(lunchService, "INGREDIENTS_ID", "rest-error");
     lunchService.getRecipesWithinUsedBy(new Date());
   }
-  
+
   @Test
   public void testGetRecipesWithinBestAndUsedBySuccess() throws ServiceException {
     ReflectionTestUtils.setField(lunchService, "RECIPES_ID", "test-good-date-and-sort");
@@ -216,15 +189,16 @@ public class LunchServiceImplTest extends AbstractJUnit4SpringContextTests {
     assertNotNull(recipes.getRecipes());
     assertEquals(3, recipes.getRecipes().size());
     assertEquals("Top Recipe", recipes.getRecipes().get(0).getTitle());
-    assertEquals("Bottom Recipe 2", recipes.getRecipes().get(recipes.getRecipes().size() - 1).getTitle());
+    assertEquals("Bottom Recipe 2",
+        recipes.getRecipes().get(recipes.getRecipes().size() - 1).getTitle());
   }
-  
+
   @Test(expected = ServiceException.class)
   public void testGetRecipesWithinBestAndUsedByInvalidRecipes() throws ServiceException {
     ReflectionTestUtils.setField(lunchService, "RECIPES_ID", "rest-error");
     lunchService.getRecipesWithinBestAndUsedBy(new Date());
   }
-  
+
   @Test(expected = ServiceException.class)
   public void testGetRecipesWithinBestAndUsedByInvalidIngredients() throws ServiceException {
     ReflectionTestUtils.setField(lunchService, "RECIPES_ID", "valid");

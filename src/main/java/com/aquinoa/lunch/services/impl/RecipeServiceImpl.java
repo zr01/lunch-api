@@ -11,13 +11,13 @@ import lombok.NonNull;
 
 @Service
 public class RecipeServiceImpl implements RecipeService {
-  
+
   @Value("${lunch.service.base-url}")
   String lunchServiceBaseUrl;
 
   @Autowired
   private RestTemplate restTemplate;
-  
+
   @Override
   public Recipes getRecipes(@NonNull String id) throws RestClientException, NullPointerException {
     return restTemplate.getForObject(lunchServiceBaseUrl + "/v2/" + id, Recipes.class);

@@ -14,10 +14,10 @@ public class IngredientServiceImpl implements IngredientService {
 
   @Value("${lunch.service.base-url}")
   String lunchServiceBaseUrl;
-  
+
   @Autowired
   private RestTemplate restTemplate;
-  
+
   @Override
   public Ingredients getIngredients(@NonNull String id) throws RestClientException {
     return restTemplate.getForObject(lunchServiceBaseUrl + "/v2/" + id, Ingredients.class);
