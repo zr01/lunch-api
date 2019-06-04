@@ -1,18 +1,15 @@
 package com.aquinoa.lunch.controllers;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.client.RestClientException;
 import com.aquinoa.lunch.daos.Recipes;
-import com.aquinoa.lunch.exceptions.ServiceException;
 import com.aquinoa.lunch.services.LunchService;
 
 @RestController
@@ -24,17 +21,10 @@ public class LunchController {
   LunchService lunchService;
 
   @GetMapping("/lunch")
-  public Recipes getLunch(@RequestParam(name = "date", required = false) String date) {
-    try {
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      Date queryDate = date != null ? sdf.parse(date) : sdf.parse(sdf.format(new Date()));
-      return lunchService.getRecipesWithinBestAndUsedBy(queryDate);
-
-    } catch (ServiceException e) {
-      throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
-    } catch (ParseException e) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Invalid date, please use yyyy-MM-dd for your date as its format");
-    }
+  public Recipes getLunch(@RequestParam(name = "date",
+      required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) 
+    throws RestClientException, NullPointerException {
+    l.debug("Date: {}", date);
+    return lunchService.getRecipesWithinBestAndUsedBy(date == null ? LocalDate.now() : date);
   }
 }

@@ -53,12 +53,12 @@ public class LunchApplicationTests extends AbstractJUnit4SpringContextTests {
   }
 
   /**
-   * The mocked data tells us there are only 1 recipe that should still be good on 2019-05-31.
+   * The mocked data tells us there are only 1 recipe that should still be good on 2019-05-30.
    */
   @Test
   public void queryAvailableLunchBeforeEndOfMay() {
     l.debug("#### queryAvailableLunchBeforeEndOfMay");
-    Recipes recipes = testRestTemplate.getForObject("/lunch?date=2019-05-31", Recipes.class);
+    Recipes recipes = testRestTemplate.getForObject("/lunch?date=2019-05-30", Recipes.class);
     assertNotNull(recipes);
     assertNotNull(recipes.getRecipes());
 
@@ -67,12 +67,12 @@ public class LunchApplicationTests extends AbstractJUnit4SpringContextTests {
   }
 
   /**
-   * The mocked data tells us there are only 3 recipes that should still be good on 2019-05-14.
+   * The mocked data tells us there are only 3 recipes that should still be good on 2019-05-13.
    */
   @Test
   public void queryAvailbleLunchOnMidMay() {
     l.debug("#### queryAvailbleLunchOnMidMay");
-    Recipes recipes = testRestTemplate.getForObject("/lunch?date=2019-05-14", Recipes.class);
+    Recipes recipes = testRestTemplate.getForObject("/lunch?date=2019-05-13", Recipes.class);
     assertNotNull(recipes);
     assertNotNull(recipes.getRecipes());
 

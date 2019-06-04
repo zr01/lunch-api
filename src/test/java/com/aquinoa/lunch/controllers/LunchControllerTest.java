@@ -4,10 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Date;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,10 +19,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.client.RestClientException;
 import com.aquinoa.lunch.daos.Recipe;
 import com.aquinoa.lunch.daos.Recipes;
-import com.aquinoa.lunch.exceptions.ServiceException;
 import com.aquinoa.lunch.services.LunchService;
 
 @RunWith(SpringRunner.class)
@@ -48,31 +45,31 @@ public class LunchControllerTest extends AbstractJUnit4SpringContextTests {
   LunchController lunchController;
 
   @Before
-  public void setup() throws ServiceException, ParseException {
+  public void setup() throws RestClientException, NullPointerException {
     Recipes valid = Recipes.builder().recipes(Arrays.asList(Recipe.builder().title("valid-recipe")
         .ingredients(Arrays.asList("valid-ingredient")).build())).build();
 
     when(lunchService.getRecipesWithAllIngredients()).thenReturn(valid);
 
-    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-    Date today = sdf.parse(sdf.format(new Date()));
+    when(lunchService.getRecipesWithinBestAndUsedBy(eq(LocalDate.of(2019, 1, 1))))
+        .thenReturn(valid);
 
-    when(lunchService.getRecipesWithinBestAndUsedBy(eq(sdf.parse("2019-01-01")))).thenReturn(valid);
+    when(lunchService.getRecipesWithinBestAndUsedBy(eq(LocalDate.of(2019, 1, 2))))
+        .thenThrow(new NullPointerException("mocked-service-error"));
 
-    when(lunchService.getRecipesWithinBestAndUsedBy(eq(sdf.parse("2019-01-02"))))
-        .thenThrow(new ServiceException("mocked-service-error"));
-
-    when(lunchService.getRecipesWithinBestAndUsedBy(eq(today))).thenReturn(Recipes.builder()
-        .recipes(Arrays.asList(
-            Recipe.builder().title("top-recipe").ingredients(Arrays.asList("top-ingredient"))
-                .build(),
-            Recipe.builder().title("low-recipe").ingredients(Arrays.asList("low-ingredient"))
-                .build()))
-        .build());
+    when(lunchService.getRecipesWithinBestAndUsedBy(eq(LocalDate.now())))
+        .thenReturn(Recipes.builder()
+            .recipes(Arrays.asList(
+                Recipe.builder().title("top-recipe").ingredients(Arrays.asList("top-ingredient"))
+                    .build(),
+                Recipe.builder().title("low-recipe").ingredients(Arrays.asList("low-ingredient"))
+                    .build()))
+            .build());
   }
 
   @Test
-  public void testGetLunchForAllAvailableIngredients() {
+  public void testGetLunchForAllAvailableIngredients()
+      throws RestClientException, NullPointerException {
     Recipes recipes = lunchController.getLunch(null);
     assertNotNull(recipes);
     assertNotNull(recipes.getRecipes());
@@ -80,20 +77,15 @@ public class LunchControllerTest extends AbstractJUnit4SpringContextTests {
   }
 
   @Test
-  public void testGetLunchWithUseBy() {
-    Recipes recipes = lunchController.getLunch("2019-01-01");
+  public void testGetLunchWithUseBy() throws RestClientException, NullPointerException {
+    Recipes recipes = lunchController.getLunch(LocalDate.of(2019, 1, 1));
     assertNotNull(recipes);
     assertNotNull(recipes.getRecipes());
     assertEquals(1, recipes.getRecipes().size());
   }
 
-  @Test(expected = ResponseStatusException.class)
-  public void testGetLunchServiceException() {
-    lunchController.getLunch("2019-01-02");
-  }
-
-  @Test(expected = ResponseStatusException.class)
-  public void testGetLunchDateParseException() {
-    lunchController.getLunch("invalid-date");
+  @Test(expected = NullPointerException.class)
+  public void testGetLunchServiceException() throws RestClientException, NullPointerException {
+    lunchController.getLunch(LocalDate.of(2019, 1, 2));
   }
 }

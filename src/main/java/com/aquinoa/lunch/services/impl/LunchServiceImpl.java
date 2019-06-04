@@ -1,6 +1,6 @@
 package com.aquinoa.lunch.services.impl;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -11,7 +11,6 @@ import org.springframework.web.client.RestClientException;
 import com.aquinoa.lunch.daos.Ingredients;
 import com.aquinoa.lunch.daos.Recipe;
 import com.aquinoa.lunch.daos.Recipes;
-import com.aquinoa.lunch.exceptions.ServiceException;
 import com.aquinoa.lunch.services.IngredientService;
 import com.aquinoa.lunch.services.LunchService;
 import com.aquinoa.lunch.services.RecipeService;
@@ -22,7 +21,9 @@ public class LunchServiceImpl implements LunchService {
   static final Logger l = LoggerFactory.getLogger(LunchServiceImpl.class);
 
   /**
-   * Default IDs for the recipes and ingredients -- possible to be changed later
+   * Default IDs for the recipes and ingredients -- possible to be changed later The static strings
+   * are mainly used for the keys being used to query the API. Can't assign final to these strings
+   * it makes testing harder
    */
   static String RECIPES_ID = "5c85f7a1340000e50f89bd6c";
   static String INGREDIENTS_ID = "5cdd037d300000da25e23402";
@@ -37,30 +38,22 @@ public class LunchServiceImpl implements LunchService {
    * Filtered recipes based on available ingredients
    */
   @Override
-  public Recipes getRecipesWithAllIngredients() throws ServiceException {
-    try {
-      Recipes recipes = recipeService.getRecipes(RECIPES_ID);
-      Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
+  public Recipes getRecipesWithAllIngredients() throws RestClientException, NullPointerException {
+    Recipes recipes = recipeService.getRecipes(RECIPES_ID);
+    Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
-      List<Recipe> filteredRecipes = recipes.getRecipes().stream()
-          /**
-           * Filter the recipe based on which ALL of its ingredients exist
-           */
-          .filter(recipe -> recipe.getIngredients().stream()
-              .allMatch(i -> ingredients.getIngredients().stream()
-                  /**
-                   * Matches the ingredient from the recipe to the ingredient list
-                   */
-                  .anyMatch(ingredient -> ingredient.getTitle().equals(i))))
-          .collect(Collectors.toList());
-      return Recipes.builder().recipes(filteredRecipes).build();
-    } catch (RestClientException e) {
-      l.error("REST call error:", e);
-      throw new ServiceException(e.getMessage());
-    } catch (NullPointerException e) {
-      l.error("Invalid ID for recipe/ingredient with error: ", e);
-      throw new ServiceException(e.getMessage());
-    }
+    List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+        /**
+         * Filter the recipe based on which ALL of its ingredients exist
+         */
+        .filter(recipe -> recipe.getIngredients().stream()
+            .allMatch(i -> ingredients.getIngredients().stream()
+                /**
+                 * Matches the ingredient from the recipe to the ingredient list
+                 */
+                .anyMatch(ingredient -> ingredient.getTitle().equals(i))))
+        .collect(Collectors.toList());
+    return Recipes.builder().recipes(filteredRecipes).build();
   }
 
   /**
@@ -68,32 +61,25 @@ public class LunchServiceImpl implements LunchService {
    * < useBy
    */
   @Override
-  public Recipes getRecipesWithinUsedBy(Date useBy) throws ServiceException {
-    try {
-      Recipes recipes = recipeService.getRecipes(RECIPES_ID);
-      Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
+  public Recipes getRecipesWithinUsedBy(LocalDate useBy)
+      throws RestClientException, NullPointerException {
+    Recipes recipes = recipeService.getRecipes(RECIPES_ID);
+    Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
-      List<Recipe> filteredRecipes = recipes.getRecipes().stream()
-          /**
-           * Filter the recipe based on which ALL of its ingredients exist
-           */
-          .filter(recipe -> recipe.getIngredients().stream()
-              .allMatch(i -> ingredients.getIngredients().stream()
-                  /**
-                   * Matches the ingredient from the recipe to the ingredient list and filters any
-                   * ingredient past the use-by date
-                   */
-                  .anyMatch(ingredient -> ingredient.getTitle().equals(i)
-                      && ingredient.getUseBy().getTime() > useBy.getTime())))
-          .collect(Collectors.toList());
-      return Recipes.builder().recipes(filteredRecipes).build();
-    } catch (RestClientException e) {
-      l.error("REST call error: ", e);
-      throw new ServiceException(e.getMessage());
-    } catch (NullPointerException e) {
-      l.error("Invalid ID for recipe/ingredient with error: ", e);
-      throw new ServiceException(e.getMessage());
-    }
+    List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+        /**
+         * Filter the recipe based on which ALL of its ingredients exist
+         */
+        .filter(recipe -> recipe.getIngredients().stream()
+            .allMatch(i -> ingredients.getIngredients().stream()
+                /**
+                 * Matches the ingredient from the recipe to the ingredient list and filters any
+                 * ingredient past the use-by date
+                 */
+                .anyMatch(ingredient -> ingredient.getTitle().equals(i)
+                    && ingredient.getUseBy().isAfter(useBy))))
+        .collect(Collectors.toList());
+    return Recipes.builder().recipes(filteredRecipes).build();
   }
 
   /**
@@ -102,42 +88,35 @@ public class LunchServiceImpl implements LunchService {
    * else if < bestBy on top of the list
    */
   @Override
-  public Recipes getRecipesWithinBestAndUsedBy(Date date) throws ServiceException {
-    try {
-      Recipes recipes = recipeService.getRecipes(RECIPES_ID);
-      Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
+  public Recipes getRecipesWithinBestAndUsedBy(LocalDate date)
+      throws RestClientException, NullPointerException {
+    Recipes recipes = recipeService.getRecipes(RECIPES_ID);
+    Ingredients ingredients = ingredientService.getIngredients(INGREDIENTS_ID);
 
-      List<Recipe> filteredRecipes = recipes.getRecipes().stream()
-          /**
-           * Filter the recipe based on which ALL of its ingredients exist and are not yet past
-           * their use-by date
-           */
-          .filter(recipe -> recipe.getIngredients().stream()
-              .allMatch(i -> ingredients.getIngredients().stream()
-                  .anyMatch(ingredient -> ingredient.getTitle().equals(i)
-                      && ingredient.getUseBy().getTime() > date.getTime())))
-          /**
-           * Sort the recipe list based on whose ingredients may expire first
-           */
-          .sorted((rLeft, rRight) -> {
-            if (ingredients.getIngredients().stream()
-                .filter(i -> rLeft.getIngredients().contains(i.getTitle()))
-                .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
-              return -1;
-            else if (ingredients.getIngredients().stream()
-                .filter(i -> rRight.getIngredients().contains(i.getTitle()))
-                .anyMatch(i -> i.getBestBefore().getTime() > date.getTime()))
-              return 1;
-            return 0;
-          }).collect(Collectors.toList());
+    List<Recipe> filteredRecipes = recipes.getRecipes().stream()
+        /**
+         * Filter the recipe based on which ALL of its ingredients exist and are not yet past their
+         * use-by date
+         */
+        .filter(recipe -> recipe.getIngredients().stream()
+            .allMatch(i -> ingredients.getIngredients().stream()
+                .anyMatch(ingredient -> ingredient.getTitle().equals(i)
+                    && ingredient.getUseBy().isAfter(date))))
+        /**
+         * Sort the recipe list based on whose ingredients may expire first
+         */
+        .sorted((rLeft, rRight) -> {
+          if (ingredients.getIngredients().stream()
+              .filter(i -> rLeft.getIngredients().contains(i.getTitle()))
+              .anyMatch(i -> i.getBestBefore().isAfter(date)))
+            return -1;
+          else if (ingredients.getIngredients().stream()
+              .filter(i -> rRight.getIngredients().contains(i.getTitle()))
+              .anyMatch(i -> i.getBestBefore().isAfter(date)))
+            return 1;
+          return 0;
+        }).collect(Collectors.toList());
 
-      return Recipes.builder().recipes(filteredRecipes).build();
-    } catch (RestClientException e) {
-      l.error("REST call error: ", e);
-      throw new ServiceException(e.getMessage());
-    } catch (NullPointerException e) {
-      l.error("Invalid ID for recipe/ingredient with error: ", e);
-      throw new ServiceException(e.getMessage());
-    }
+    return Recipes.builder().recipes(filteredRecipes).build();
   }
 }

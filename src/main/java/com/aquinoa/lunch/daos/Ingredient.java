@@ -1,7 +1,6 @@
 package com.aquinoa.lunch.daos;
 
-import java.util.Date;
-import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,10 +19,8 @@ public class Ingredient {
   private String title;
   
   @JsonProperty("best-before")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date bestBefore;
+  private LocalDate bestBefore;
   
   @JsonProperty("use-by")
-  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-  private Date useBy;
+  private LocalDate useBy;
 }
